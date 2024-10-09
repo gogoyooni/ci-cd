@@ -21,14 +21,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: List directory contents
-        run: ls -R
-
       - name: Build and push frontend
         uses: docker/build-push-action@v2
         with:
           context: frontend
-          file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
 
@@ -36,21 +32,16 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: backend
-          file: ./backend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v1
-
-      - name: Deploy to Kubernetes
+      - name: Update deployment files
         run: |
-          kubectl apply -f k8s/
-          kubectl set image deployment/frontend frontend=${{ secrets.DOCKERHUB_USERNAME }}/frontend:${{ github.sha }}
-          kubectl set image deployment/backend backend=${{ secrets.DOCKERHUB_USERNAME }}/backend:${{ github.sha }}
+          sed -i 's|${DOCKERHUB_USERNAME}|${{ secrets.DOCKERHUB_USERNAME }}|g' k8s/*.yaml
+          sed -i 's|${IMAGE_TAG}|${{ github.sha }}|g' k8s/*.yaml
+
+      - name: Upload updated k8s files
+        uses: actions/upload-artifact@v2
+        with:
+          name: k8s-files
+          path: k8s/
