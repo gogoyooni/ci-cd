@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: taeyoondev/backend
+          image: taeyoondev/backend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
