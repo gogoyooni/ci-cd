@@ -41,7 +41,7 @@ jobs:
           sed -i 's|${IMAGE_TAG}|${{ github.sha }}|g' k8s/*.yaml
 
       - name: Upload updated k8s files
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: k8s-files
           path: k8s/
